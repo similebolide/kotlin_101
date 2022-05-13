@@ -49,11 +49,19 @@ fun getPriceList(productList: List<Product>): List<Double> =
 open class
 
 data class
+
+sealed class
+
+interface class
+
+object class
 ```
 
-...
+### Constructors
 
-### Variables statiques
+### Companion object
+
+#### Variables statiques
 
 ```kotlin
 class Toto {
@@ -63,10 +71,20 @@ class Toto {
 }
 ```
 
+### Héritage
+
+...
+
 ### Operator overloading
 
 ```kotlin
 Toto.toString() = 
+```
+
+### Method extension
+
+```
+TODO Method Extension
 ```
 
 ## Mots-clés
@@ -74,10 +92,14 @@ Toto.toString() =
 ### Case
 
 ```kotlin
-when(variable) {
-    value1 -> ...
-    value2 -> ...
-    else -> ...
+when (variable) {
+    value1 ->
+        ...
+        value2
+    ->
+        ...
+    else ->
+        ...
 }
 ```
 
@@ -94,3 +116,80 @@ val name: String = "Astérix"
 
 val message = "Coucou, $name"
 ```
+
+### Transformations
+
+#### filter
+
+```kotlin
+TODO filter
+```
+
+#### map / toMap()
+
+```kotlin
+TODO map
+```
+
+#### flat map / flatten
+
+```kotlin
+TODO flat map
+```
+
+#### zip
+
+```kotlin
+TODO zip
+```
+
+#### plus / minus
+
+```kotlin
+TODO plus minus
+```
+
+#### groupBy
+
+```kotlin
+TODO groupBy
+```
+
+#### fold / reduce
+
+```
+TODO fold / reduce
+```
+
+### Scope Functions
+
+#### let()
+
+```
+TODO let()
+```
+
+#### run()
+
+```
+TODO run()
+```
+
+#### with()
+
+```
+TODO with()
+```
+
+#### apply()
+
+```
+TODO apply()
+```
+
+#### also()
+
+```
+TODO also()
+```
+

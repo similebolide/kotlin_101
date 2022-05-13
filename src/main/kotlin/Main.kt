@@ -16,12 +16,13 @@ data class Price(
 )
 
 fun oldSchoolGetPriceList(productList: List<Product>): List<Price> {
-    val priceList = mutableListOf<Product>()
+    val priceList = mutableListOf<Price>()
     for (product in productList) {
         priceList.add(product.price)
     }
     return priceList
 }
-fun getPriceListmlml(productList: List<Product>): List<Price> =
+
+fun getPriceList(productList: List<Product>): List<Price> =
     productList.map { it.price }
 
