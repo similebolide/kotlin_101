@@ -6,27 +6,20 @@
 
 Valeur constante, immutable
 ```kotlin
-val string = "hello"
+val message = "hello"
+// message = ... would result in compilation error
 ```
 Valeur ré-assignable
 
 ```kotlin
-var string = "hello"
+var message = "hello"
+// string: hello
 string = "hello, world"
+// string: hello, world
 ```
-
-
-**Note : virer de cette section ?** (elvis + paramètres optionnels)
-
-```val string: String? = "hello"
-val string: String? = null
-
-val string = StringGenerator.getStringOrNull() ?: "string generator returned null"
-```
-
 ### Fonction
 
-#### 2 façons de déclarer
+#### Déclaration
 
 Bloc
 
@@ -35,7 +28,6 @@ fun sum(a: Double, b: Double): Double {
     return a + b
 }
 ````
-
 One-line
 
 ````kotlin
@@ -86,19 +78,19 @@ class Foo(val bar: String)
 
 ### Companion object
 
-#### Variables statiques
+#### Variables statiques (membres de classe non-liés à une instance)
 
-Membres de classe (non-liés à une instance). Traditionnellement en Java
+Traditionnellement en Java
 
 ```java
 class Toto {
     public final static String MY_STATIC_MEMBER = "This is my static member";
 }
 
-// ...
+// elsewhere in the code
 
-    String singletonValue = Toto.MY_STATIC_MEMBER;
-// "This is my static member"
+String singletonValue = Toto.MY_STATIC_MEMBER;
+// singletonValue: "This is my static member"
 ```
 
 En kotlin
@@ -118,8 +110,12 @@ Même procédé pour déclarer des méthodes statiques
 
 ### Héritage
 
+Pour pouvoir hériter d'une classe : mot-clé `open`
+
+Un membre non défini dans la classe mère (cf. `logPrefix` ci-dessous) doit être déclaré `abstract`.
+
 ````kotlin
-open class Logger(abstract val logPrefix: String) {
+open class Logger(val logPrefix: String) {
     
     fun log(val message: String) {
         print("$logPrefix: $message")
@@ -135,7 +131,9 @@ debugLogger.log("my first log message")
 
 ### Operator overloading
 
-`invoke()`: très utile pour les usecase
+Les opérateurs du langage (`+`, `+=`, `()`...) peuvent être surchargés pour les objets d'une classe donnée.
+
+ex. `invoke()`: très utile pour les usecase
 
 ```kotlin
 class RetrieveProducts(val productRepository: ProductRepository) {
@@ -146,11 +144,13 @@ class RetrieveProducts(val productRepository: ProductRepository) {
 // ...
 
 val retrieveProducts = RetrieveProducts(gtsProductRepository)
-val products = retrieveProducts() // No need to call retrieveProducts.invoke()!
+val products = retrieveProducts() // No need to call retrieveProducts.invoke() :-)
 ```
 Pour en savoir plus : https://kotlinlang.org/docs/operator-overloading.html
 
 ### Method extension
+
+Définition d'une méthode de classe n'importe où en-dehors du corps de cette classe (`{}`)
 
 ```kotlin
 class Product(val id: ProductId, val label: String) {}
@@ -160,9 +160,18 @@ class Product(val id: ProductId, val label: String) {}
 Product.toString() = "Product ${id.value}, with label $label"
 ```
 
+Note: peut aussi s'appliquer aux collections (`List`...)
+
+```kotlin
+fun List<SimplePrice>.sumOfAmounts(currency: CurrencyCode) = SimplePrice(
+    currency = currency,
+    amount = sumOf { it.amount }
+)
+```
+
 ### Classes avec propriétés spécifiques
 
-Équivalent aux POJO (Plain-Old Java Objects)
+#### `data class` : équivalent aux POJO (Plain-Old Java Objects)
 
 ```kotlin
 data class Payment(
@@ -183,13 +192,111 @@ val (transactionId, amount, paymentMethod) = payment
 // "19537593", 1249.99, PaymentMethod.CB
 ```
 
-**TODO**
+#### Classes "sealed"
+
+Permet de définir un arbre d'héritage qui ne pourra pas être étendu ailleurs que dans le package concerné. Rajouter `sealed` rajoute la contrainte que toutes les méthodes étendant de la classe en question sont connues à la compilation et présentes dans le package.
+
+> Sealed classes are designed to be used when there are a very specific set of possible options for a value, and where each of these options is functionally different – just Algebraic Data Types.
+
+Pour plus d'infos : https://www.baeldung.com/kotlin/sealed-classes
 
 ```kotlin
-sealed class SealedClass
+sealed class Order {
+    abstract val id: OrderId
+    abstract val site: Site
+    abstract val totalPrice: CompositePrice
+    // ...
+    abstract fun format(formatProvider: FormatProvider): FormattedOrderForConfirmationEmailTemplate
+
+    data class OrderWithTickets(
+        override val id: OrderId,
+        override val site: Site,
+        // ...
+        val articles: List<OrderArticle>,
+        val couponCode: CouponCode? = null,
+        val participantsDetails: List<OrderPassParticipant> = emptyList()
+    ) : Order() {
+        override val totalPrice
+            get() = CompositePrice.ofCompositePrices(site.currency, priceAfterCoupon)
+
+        val priceBeforeDiscount
+            get() = CompositePrice.ofCompositePrices(site.currency, priceBeforeCoupon)
+        
+        // ...
+
+        override fun format(formatProvider: FormatProvider) = FormattedOrderWithTicketsForConfirmationEmailTemplate(
+            id = id.value,
+            site = site.name,
+            // ...
+        )
+    }
+
+    data class OrderWithStay(
+        override val id: OrderId,
+        override val site: Site,
+        // ...
+        val stay: OrderStay,
+        val hotel: Hotel
+    ) : Order() {
+
+        override val totalPrice
+            get() = CompositePrice(site.currency, listOf(stay.totalPriceIncludingOptionsAndInsurances))
+
+        override fun format(formatProvider: FormatProvider) = FormattedOrderWithStayForConfirmationEmailTemplate(
+            id = id.value,
+            site = site.name,
+            // ...
+        )
+    }
+}
+```
+#### Classes "enum"
+
+Classe décrivant un ensemble fini de valeurs possibles assignables à un objet. `enum class` permet aussi de définir des définitions de méthodes spécifiques à chaque valeur de l'`enum`.
+
+```kotlin
+enum class Site(
+    val timeZone: ZoneId,
+    val currency: CurrencyCode,
+    val hasB2CSales: Boolean,
+    val hasStays: Boolean,
+    val needsEmailSending: Boolean,
+    val country: Country
+) {
+    PARC_ASTERIX(
+        timeZone = ZoneId.of("Europe/Paris"),
+        currency = EUR,
+        hasB2CSales = true,
+        hasStays = true,
+        needsEmailSending = true,
+        country = FRANCE
+    ),
+    FRANCE_MINIATURE(
+        timeZone = ZoneId.of("Europe/Paris"),
+        currency = EUR,
+        hasB2CSales = true,
+        hasStays = false,
+        needsEmailSending = true,
+        country = FRANCE
+    ),
+    // ...
+}
+```
+**ended here, to be completed**
+
+#### Classes "inline"
+
+Utile pour wrapper un type primitif dans une class qui reflète la logique métier
+
+```kotlin
+value class TicketId(val value: String)
 ```
 
-### Singleton
+Avantage : beaucoup plus performant que l'usage équivalent sans le mot-clé `value`
+
+Pour aller plus loin : https://kotlinlang.org/docs/inline-classes.html
+
+## Singleton
 
 Accessible partout (variables globales)
 
@@ -203,7 +310,7 @@ ServerConfiguration.baseUrl = "https://cda.test.fr/api/v1"
 val gtsProductsResponse = httpClient.call("${ServerConfiguration.baseUrl}/products")
 ```
 
-### Interfaces (polymorphisme)
+## Interfaces (polymorphisme)
 
 Déclaration
 
@@ -257,9 +364,6 @@ val retrieveDatadogFormattedConsumptionDate = RetrieveFormattedProductConsumptio
 val consumptionDateForDatadog = retrieveDatadogFormattedConsumptionDate()
 // "
 ```
-
-**ended here**...
-
 ## Mots-clés
 
 ### Case
@@ -383,4 +487,3 @@ TODO apply()
 ```
 TODO also()
 ```
-
