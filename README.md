@@ -5,10 +5,12 @@
 ### Variable
 
 Valeur constante, immutable
+
 ```kotlin
 val message = "hello"
 // message = ... would result in compilation error
 ```
+
 Valeur ré-assignable
 
 ```kotlin
@@ -17,6 +19,7 @@ var message = "hello"
 string = "hello, world"
 // string: hello, world
 ```
+
 ### Fonction
 
 #### Déclaration
@@ -28,6 +31,7 @@ fun sum(a: Double, b: Double): Double {
     return a + b
 }
 ````
+
 One-line
 
 ````kotlin
@@ -42,10 +46,11 @@ fun printWelcomeMessage(firstName: String?) {
         print("Welcome, $firstname !")
         return
     }
-    
+
     print("Welcome, stranger !")
 }
 ```
+
 #### Argument par défaut
 
 ````kotlin
@@ -63,7 +68,7 @@ Membres à assigner à la construction, traditionnellement en Java
 ```java
 class Foo {
     private String bar;
-            
+
     public Foo(String bar) {
         this.bar = bar;
     }
@@ -89,7 +94,7 @@ class Toto {
 
 // elsewhere in the code
 
-String singletonValue = Toto.MY_STATIC_MEMBER;
+    String singletonValue = Toto.MY_STATIC_MEMBER;
 // singletonValue: "This is my static member"
 ```
 
@@ -116,13 +121,13 @@ Un membre non défini dans la classe mère (cf. `logPrefix` ci-dessous) doit êt
 
 ````kotlin
 open class Logger(val logPrefix: String) {
-    
+
     fun log(val message: String) {
         print("$logPrefix: $message")
     }
 }
 
-class DebugLogger(): Logger("Debug: ")
+class DebugLogger() : Logger("Debug: ")
 
 val debugLogger = DebugLogger()
 debugLogger.log("my first log message")
@@ -137,7 +142,7 @@ ex. `invoke()`: très utile pour les usecase
 
 ```kotlin
 class RetrieveProducts(val productRepository: ProductRepository) {
-    
+
     override fun invoke(): List<Product> = productsRepository.findAll()
 }
 
@@ -146,6 +151,7 @@ class RetrieveProducts(val productRepository: ProductRepository) {
 val retrieveProducts = RetrieveProducts(gtsProductRepository)
 val products = retrieveProducts() // No need to call retrieveProducts.invoke() :-)
 ```
+
 Pour en savoir plus : https://kotlinlang.org/docs/operator-overloading.html
 
 ### Method extension
@@ -194,7 +200,9 @@ val (transactionId, amount, paymentMethod) = payment
 
 #### Classes "sealed"
 
-Permet de définir un arbre d'héritage qui ne pourra pas être étendu ailleurs que dans le package concerné. Rajouter `sealed` rajoute la contrainte que toutes les méthodes étendant de la classe en question sont connues à la compilation et présentes dans le package.
+- Classe abstraites (non instanciables directement)
+- Classes qui étendent une `sealed class` contraintes à se trouver soit dans le même fichier que la classe `sealed` de
+  base, soit dans le même package
 
 > Sealed classes are designed to be used when there are a very specific set of possible options for a value, and where each of these options is functionally different – just Algebraic Data Types.
 
@@ -202,57 +210,38 @@ Pour plus d'infos : https://www.baeldung.com/kotlin/sealed-classes
 
 ```kotlin
 sealed class Order {
+    // Closed for modification
     abstract val id: OrderId
     abstract val site: Site
-    abstract val totalPrice: CompositePrice
-    // ...
-    abstract fun format(formatProvider: FormatProvider): FormattedOrderForConfirmationEmailTemplate
 
     data class OrderWithTickets(
+        // Closed for modification
         override val id: OrderId,
         override val site: Site,
-        // ...
+        // Open for extension
         val articles: List<OrderArticle>,
         val couponCode: CouponCode? = null,
         val participantsDetails: List<OrderPassParticipant> = emptyList()
-    ) : Order() {
-        override val totalPrice
-            get() = CompositePrice.ofCompositePrices(site.currency, priceAfterCoupon)
-
-        val priceBeforeDiscount
-            get() = CompositePrice.ofCompositePrices(site.currency, priceBeforeCoupon)
-        
-        // ...
-
-        override fun format(formatProvider: FormatProvider) = FormattedOrderWithTicketsForConfirmationEmailTemplate(
-            id = id.value,
-            site = site.name,
-            // ...
-        )
-    }
+    ) : Order()
 
     data class OrderWithStay(
+        // Closed for modification
         override val id: OrderId,
         override val site: Site,
-        // ...
+        // Open for extension
         val stay: OrderStay,
         val hotel: Hotel
-    ) : Order() {
-
-        override val totalPrice
-            get() = CompositePrice(site.currency, listOf(stay.totalPriceIncludingOptionsAndInsurances))
-
-        override fun format(formatProvider: FormatProvider) = FormattedOrderWithStayForConfirmationEmailTemplate(
-            id = id.value,
-            site = site.name,
-            // ...
-        )
-    }
+    ) : Order()
 }
 ```
+
+Par exemple, on utilise les `sealed class` dans le package `commons` du projet, pour pouvoir à la fois définir un
+comportement logique de base (abstrait) et dont on maîtrise l'extension (les classes qui étendent de `sealed` héritent
+du comportement de base et doivent être dans le même package).
+
 #### Classes "enum"
 
-Classe décrivant un ensemble fini de valeurs possibles assignables à un objet. `enum class` permet aussi de définir des définitions de méthodes spécifiques à chaque valeur de l'`enum`.
+Spécifier un ensemble fini de valeurs de champ (et éventuellement d'implémentation de méthodes) assignables à un objet
 
 ```kotlin
 enum class Site(
@@ -278,11 +267,11 @@ enum class Site(
         hasStays = false,
         needsEmailSending = true,
         country = FRANCE
-    ),
-    // ...
+    )
 }
 ```
-**ended here, to be completed**
+
+Pour plus d'infos : https://www.baeldung.com/kotlin/enum
 
 #### Classes "inline"
 
@@ -294,11 +283,11 @@ value class TicketId(val value: String)
 
 Avantage : beaucoup plus performant que l'usage équivalent sans le mot-clé `value`
 
-Pour aller plus loin : https://kotlinlang.org/docs/inline-classes.html
+Pour plus d'infos : https://kotlinlang.org/docs/inline-classes.html
 
 ## Singleton
 
-Accessible partout (variables globales)
+Seule instance d'une classe, accessible globalement dans le code via un simple import
 
 ```kotlin
 object ServerConfiguration(var baseUrl: String) {}
@@ -310,23 +299,26 @@ ServerConfiguration.baseUrl = "https://cda.test.fr/api/v1"
 val gtsProductsResponse = httpClient.call("${ServerConfiguration.baseUrl}/products")
 ```
 
-## Interfaces (polymorphisme)
+## Interfaces
 
-Déclaration
+Utilisées dans une codebase pour utiliser du polymorphisme : effectuer des actions sur des objets sans se soucier de
+l'implémentation sous-jacente, pourvu qu'ils respectent le contrat d'interface
+
+### Déclaration
 
 ```kotlin
 interface DateFormatter {
     fun format(date: LocalDate): String
 }
 
-class FrontDateFormatter: DateFormatter {
+class FrontDateFormatter : DateFormatter {
     override fun format(date: LocalDate): String {
         val formatter = DateTimeFormatter.ofPattern("EEEEE MMMMM yyyy, à HH:mm:ss")
         return date.format(formatter)
     }
 }
 
-class DatadogDateFormatter: DateFormatter {
+class DatadogDateFormatter : DateFormatter {
     override fun format(date: LocalDate): String {
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSZ")
         return date.format(formatter)
@@ -334,25 +326,29 @@ class DatadogDateFormatter: DateFormatter {
 }
 ```
 
-Injection de dépendance
+### Injection de dépendance
 
 ```kotlin
 
-class RetrieveFormattedProductConsumptionDate(val productRepository: ProductRepository, val dateFormatter: DateFormatter) {
-    override fun invoke(val productId: ProductId): String { 
+class RetrieveFormattedProductConsumptionDate(
+    val productRepository: ProductRepository,
+    val dateFormatter: DateFormatter
+) {
+    override fun invoke(val productId: ProductId): String {
         val product = productRepository.findBy(productId)
-        
+
         return dateFormatter.format(product.consumptionDate)
     }
 }
 ```
 
-Usage en contexte avec polymorphisme
+### Usage en contexte avec polymorphisme
 
 ```kotlin
 // front-related use case
 val frontDateFormatter = FrontDateFormatter()
-val retrieveFrontFormattedConsumptionDate = RetrieveFormattedProductConsumptionDate(productsRepository, frontDateFormatter)
+val retrieveFrontFormattedConsumptionDate =
+    RetrieveFormattedProductConsumptionDate(productsRepository, frontDateFormatter)
 val consumptionDateForFront = retrieveFrontFormattedConsumptionDate()
 // "
 ```
@@ -360,82 +356,140 @@ val consumptionDateForFront = retrieveFrontFormattedConsumptionDate()
 ```kotlin
 // datadog-related use case
 val datadogDateFormatter = DatadogDateFormatter()
-val retrieveDatadogFormattedConsumptionDate = RetrieveFormattedProductConsumptionDate(productsRepository, datadogDateFormatter)
+val retrieveDatadogFormattedConsumptionDate =
+    RetrieveFormattedProductConsumptionDate(productsRepository, datadogDateFormatter)
 val consumptionDateForDatadog = retrieveDatadogFormattedConsumptionDate()
 // "
 ```
+
 ## Mots-clés
 
 ### Case
 
+Exécuter différents blocs de code en fonction de la valeur d'une variable
+
 ```kotlin
-when (variable) {
-    value1 ->
-        // ...
-    value2 ->
-        // ...
-    else ->
-        // ...
+class CarFactory {
+    inner enum class Model {
+        RENAULT,
+        CITROEN,
+        FORD
+    }
+
+    fun buildModel(model: Model) =
+        when (model) {
+            RENAULT -> Renault()
+            CITROEN -> Citroen()
+            FORD -> Ford()
+            else -> throw UnknownModelException("model cannot be built")
+        }
 }
 ```
 
 ### Elvis
 
+Exécuter un bloc de code dans le cas où la valeur à gauche de l'elvis est `null`
+
 ```kotlin
-?:
+// Somewhere in another file
+data class Movie(val title: String, val description: String)
+
+class MovieRepository() {
+    fun find(name: String): Movie? { /* ... */
+    }
+}
+
+val movie = movieRepository.find("Three Billboards outside Ebbing, Missouri")
+
+// If no movie found, throw exception 
+val description = movie?.description ?: throw MovieNotFoundException()
 ```
 
 ### String interpolation
 
-```kotlin
-val name: String = "Astérix"
+Insérer des valeurs dynamiques de `String` à l'intérieur d'un template en dur
 
-val message = "Coucou, $name"
+```kotlin
+val username: String = authenticatedUserProvider.getName()
+
+val message = "Coucou, $username"
+// Coucou, Astérix
 ```
 
 ## Transformations
 
+```kotlin
+data class Product(
+    val id: String,
+    val variants: List<Variant>,
+    val label: String
+) {
+
+    data class Variant(
+        val id: String,
+        val price: Double,
+        val label: String
+    )
+
+    fun List<Variant>.toString() { /* ... */
+    }
+
+    fun toString() = "Product $label. Variants: { ${variants.toString()} }"
+}
+```
+
 ### filter
 
 ```kotlin
-TODO filter
+val products: List<Product> = productsRepository.findAll()
+// Retrieve products which have at least one variant
+val productsWithVariants = products.filter { !it.variants.isEmpty() }
 ```
-
-### map / toMap()
-
-Conventionnel (java-ish)
-
-```kotlin
-fun getPriceList(productList: List<Product>): List<Double> {
-    val priceList = mutableListOf<Product>()
-
-    for (product in productList) {
-        priceList.add(product.price)
-    }
-
-    return priceList
-}
-
-```
-
-À la sauce Kotlin
-
-```kotlin
-fun getPriceList(productList: List<Product>): List<Double> =
-    productList.map { it.price }
-```
-
 
 ### flat map / flatten
 
 ```kotlin
-TODO flat map
+val products: List<Product> = productsRepository.findAll()
+// Retrieve all variants inside products
+val variants = products.flatMap { it.variants }
+```
+
+### map / toMap()
+
+À la sauce Kotlin
+
+```kotlin
+val products: List<Product> = productsRepository.findAll()
+// Retrieve every product label
+val productLabels = products.map { it.label }
 ```
 
 ### zip
 
+Fusionner 2 listes ayant le même nombre d'éléments, en rejoignant les éléments situés au même index deux à deux avec une stratégie de fusion donnée en paramètre
+
 ```kotlin
-TODO zip
+data class BackendProduct(
+    val id: String,
+    val variants: List<BackendVariant>
+) {
+    data class BackendVariant(
+        val id: String,
+        val price: Double
+    )
+}
+
+val backendProducts: List<BackendProduct> = backendProductsHttpClient.getAll()
+val productLabels = backendProducts.map { productLabelsRepository.find(it.id) }
+
+// Create a Product from the two lists above
+val products = backendProducts.zip(productLabels) { backendProduct, productLabel ->
+    Product(
+        id = backendProduct.id,
+        variants = backendProduct.variants,
+        label = productLabel
+    )
+}
 ```
 
 ### plus / minus
