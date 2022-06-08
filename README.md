@@ -466,7 +466,8 @@ val productLabels = products.map { it.label }
 
 ### zip
 
-Fusionner 2 listes ayant le même nombre d'éléments, en rejoignant les éléments situés au même index deux à deux avec une stratégie de fusion donnée en paramètre
+Fusionner 2 listes ayant le même nombre d'éléments, en rejoignant les éléments situés au même index deux à deux avec une
+stratégie de fusion donnée en paramètre
 
 ```kotlin
 data class BackendProduct(
@@ -498,7 +499,13 @@ Aggréger deux listes avec des éléments du même type
 
 ```kotlin
 val footballMailingList = listOf("liza@edf.fr", "f.barthez@edf.fr")
-val pantheonMailingList = listOf("jeremy.bouhi@octo.com", "simon.masliah@octo.com", "r.girard@octo.com", "quentin.mino@octo.com", "valentin.alves@octo.com")
+val pantheonMailingList = listOf(
+    "jeremy.bouhi@octo.com",
+    "simon.masliah@octo.com",
+    "r.girard@octo.com",
+    "quentin.mino@octo.com",
+    "valentin.alves@octo.com"
+)
 
 val aggregatedList = footballMailingList.plus(pantheonMailingList)
 // ["liza@edf.fr", "f.barthez@edf.fr", "jeremy.bouhi@octo.com", "simon.masliah@octo.com", "r.girard@octo.com", "quentin.mino@octo.com", "valentin.alves@octo.com"]
@@ -515,18 +522,62 @@ val eliminatedChallengers = setOf("Jean-Mi", "Gisèle")
 hungerGamesChallengers = hungerGamesChallengers.minus(eliminatedChallengers)
 // ["Didier", "Monique", "Bernard"]
 ```
+
 ### groupBy
 
-**ended here**
+Générer un dictionnaire / une map à partir d'une liste d'objet, en prenant comme clé celle spécifiée en paramètres (`it`
+se réfère à chaque item pour pouvoir définir une clé unique)
 
 ```kotlin
-TODO groupBy
+data class Pokemon(val name: String, val attacks: List<Attack>, val healthPoints: Double) {
+    fun hit(val power: Double) = healthPoints -= power
+}
+
+val deck: List<Pokemon> = pokemonDeckProvider.getRandom()
+// Pokemon("Charmander"), Pokemon("Butterfree"), Pokemon("Sandslash")
+
+fun hitPokemon(name: String, deck: List<Pokemon>, power: Double) {
+    val deckByName = deck.groupBy { it.name }
+    /*
+    {
+        "Charmander" -> Pokemon("Charmander", ...),
+        "Butterfree" -> Pokemon("Butterfree", ...),
+        "Sandslash" -> Pokemon("Sandslash", ...)
+    }
+    */
+    deckByName[name].hit(20.0)
+}
+
+hitPokemon("Sandlash", deck, 20.0)
 ```
 
 ### fold / reduce
 
-```
-TODO fold / reduce
+Opérateur d'aggrégation : accumuler tous les éléments d'une liste pour aboutir à un seul et unique résultat. On spécifie
+l'opération à effectuer entre les éléments de la liste (et la valeur initiale pour `fold()`, si nécessaire) en paramètre
+
+```kotlin
+data class Pokemon(val name: String, val healthPoints: Int)
+data class PokemonStatistics(val maxHealth: Int, val shortestName: String)
+
+val deck: List<Pokemon> = pokemonDeckProvider.getRandom()
+// Pokemon("Charmander", 130), Pokemon("Ho-Oh", 90), Pokemon("Sandslash", 70)
+val statistics = deck.fold(
+    PokemonStatistics(maxHealth = 0.0, shortestName = "arbitrary_very_long_stringgggggggg")
+    { currentStatistics, pokemon ->
+        PokemonStatistics(
+            maxHealth = if (pokemon.healthPoints > currentStatistics.maxHealth)
+                pokemon.healthPoints
+            else
+                currentStatistics.maxHealth,
+            shortestName = if (pokemon.name.length() < currentStatistics.shortestName.length())
+                pokemon.name
+            else
+                currentStatistics.shortestName
+        )
+    }
+)
+// PokemonStatistics(maxHealth = 130, shortestName = "Ho-Oh")
 ```
 
 ## Scope Functions
