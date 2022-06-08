@@ -492,13 +492,32 @@ val products = backendProducts.zip(productLabels) { backendProduct, productLabel
 }
 ```
 
-### plus / minus
+### plus
+
+Aggréger deux listes avec des éléments du même type
 
 ```kotlin
-TODO plus minus
+val footballMailingList = listOf("liza@edf.fr", "f.barthez@edf.fr")
+val pantheonMailingList = listOf("jeremy.bouhi@octo.com", "simon.masliah@octo.com", "r.girard@octo.com", "quentin.mino@octo.com", "valentin.alves@octo.com")
+
+val aggregatedList = footballMailingList.plus(pantheonMailingList)
+// ["liza@edf.fr", "f.barthez@edf.fr", "jeremy.bouhi@octo.com", "simon.masliah@octo.com", "r.girard@octo.com", "quentin.mino@octo.com", "valentin.alves@octo.com"]
 ```
 
+### minus
+
+Retirer certains éléments d'une liste
+
+```kotlin
+val hungerGamesChallengers = listOf("Didier", "Jean-Mi", "Gisèle", "Monique", "Bernard")
+val eliminatedChallengers = setOf("Jean-Mi", "Gisèle")
+
+hungerGamesChallengers = hungerGamesChallengers.minus(eliminatedChallengers)
+// ["Didier", "Monique", "Bernard"]
+```
 ### groupBy
+
+**ended here**
 
 ```kotlin
 TODO groupBy
