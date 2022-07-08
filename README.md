@@ -582,6 +582,38 @@ val statistics = deck.fold(
 
 ## Scope Functions
 
+Parmi les standards de Kotlin, on retrouve plusieurs fonctions qui ont pour seule responsabilité d'éxécuter du code dans le contexte d'un objet.
+
+#### apply()
+
+L'objet est disponible en tant que récepteur ``this`` et il se retourne lui-même.
+Utilisé dans la configuration d'un objet.
+```
+data class Product(
+    val name: String,
+    val quantity: Int,
+)
+
+val myList = mutableListOf<Product>()
+
+fun `add essential stuff to my ShoppingList`() : List<Product> {
+    return myList.apply {
+        add(Product(name = "Pair of Slippers", quantity = 1))
+        add(Product(name = "Beer keg", quantity = 7))
+    }
+}
+
+// println(`add essential stuff to my ShoppingList`().toString()) will output : 
+// [Product(name=Pair of Slippers, quantity=1), Product(name=Beer keg, quantity=7)] 
+
+```
+
+#### also()
+
+```
+TODO also()
+```
+
 #### let()
 
 ```
@@ -598,16 +630,4 @@ TODO run()
 
 ```
 TODO with()
-```
-
-#### apply()
-
-```
-TODO apply()
-```
-
-#### also()
-
-```
-TODO also()
 ```
