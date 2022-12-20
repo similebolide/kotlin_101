@@ -582,9 +582,9 @@ val statistics = deck.fold(
 
 ## Scope Functions
 
-Parmi les standards de Kotlin, on retrouve plusieurs fonctions qui ont pour seule responsabilité d'éxécuter du code dans le contexte d'un objet.
+Parmi les standards de Kotlin, on retrouve plusieurs fonctions qui ont pour seule responsabilité d'exécuter du code dans le contexte d'un objet.
 
-#### apply()
+### apply()
 
 L'objet est disponible en tant que récepteur ``this`` et il se retourne lui-même.
 Utilisé dans la configuration d'un objet.
@@ -608,25 +608,25 @@ fun `add essential stuff to my ShoppingList`() : List<Product> {
 
 ```
 
-#### also()
+### also()
 
 ```
 TODO also()
 ```
 
-#### let()
+### let()
 
 ```
 TODO let()
 ```
 
-#### run()
+### run()
 
 ```
 TODO run()
 ```
 
-#### with()
+### with()
 
 ```
 TODO with()
